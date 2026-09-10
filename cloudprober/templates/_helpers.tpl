@@ -74,44 +74,43 @@ specified.
 {{- end }}
 
 {{/*
-Retrieve the service port from the values. The first port named "http" in
-.Values.service.ports is used if present, otherwise .Values.service.port, and
-finally the first entry of .Values.service.ports.
+Select which entry of .Values.service.ports serves the cloudprober status page
+and metrics: the entry named "http" if there is one, otherwise the first entry.
+Returns its index. Callers must only use this when .Values.service.ports is
+set.
+*/}}
+{{- define "cloudprober.servicePortIndex" -}}
+{{- $selected := 0 -}}
+{{- range $i, $p := .Values.service.ports -}}
+{{- if eq ($p.name | default "") "http" -}}
+{{- $selected = $i -}}
+{{- end -}}
+{{- end -}}
+{{- $selected -}}
+{{- end -}}
+
+{{/*
+Retrieve the service port. .Values.service.ports takes precedence whenever it
+is set; .Values.service.port is used otherwise.
 */}}
 {{- define "cloudprober.servicePort" -}}
-{{- $servicePort := "" -}}
-{{- range .Values.service.ports -}}
-{{- if and (eq (.name | default "") "http") (not $servicePort) -}}
-{{- $servicePort = .port -}}
-{{- end -}}
-{{- end -}}
-{{- if $servicePort -}}
-{{- $servicePort -}}
-{{- else if .Values.service.port -}}
+{{- if .Values.service.ports -}}
+{{- $entry := index .Values.service.ports (include "cloudprober.servicePortIndex" . | atoi) -}}
+{{- $entry.port -}}
+{{- else -}}
 {{- .Values.service.port -}}
-{{- else if .Values.service.ports -}}
-{{- (first .Values.service.ports).port -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Retrieve the service port name from the values. The first port named "http" in
-.Values.service.ports is used if present, otherwise the name given to
-.Values.service.port, and finally the first entry of .Values.service.ports.
+Retrieve the service port name, .Values.service.ports takes precedence whenever 
+it is set; the name given to .Values.service.port is used otherwise.
 */}}
 {{- define "cloudprober.servicePortName" -}}
-{{- $servicePortName := "" -}}
-{{- range .Values.service.ports -}}
-{{- if and (eq (.name | default "") "http") (not $servicePortName) -}}
-{{- $servicePortName = .name -}}
-{{- end -}}
-{{- end -}}
-{{- if $servicePortName -}}
-{{- $servicePortName -}}
-{{- else if .Values.service.port -}}
+{{- if .Values.service.ports -}}
+{{- $entry := index .Values.service.ports (include "cloudprober.servicePortIndex" . | atoi) -}}
+{{- $entry.name | default (printf "port-%v" $entry.port) -}}
+{{- else -}}
 {{- "http" -}}
-{{- else if .Values.service.ports -}}
-{{- $firstPort := first .Values.service.ports -}}
-{{- $firstPort.name | default (printf "port-%v" $firstPort.port) -}}
 {{- end -}}
 {{- end }}

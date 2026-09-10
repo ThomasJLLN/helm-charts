@@ -167,7 +167,7 @@ service:
   annotations: {}
   port: 8080
   # Optional: expose multiple ports (e.g. a probe listener).
-  # Overrides `port` when set.
+  # Take precedence over `port` when set.
   ports: []
   #   - name: http
   #     port: 8080

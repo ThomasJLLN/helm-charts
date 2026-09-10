@@ -7,5 +7,5 @@ To access {{ include "cloudprober.fullname" . }} status page:
 {{- end }}
 {{- else }}
   kubectl port-forward svc/{{ include "cloudprober.fullname" . }} -n {{ .Release.Namespace }} {{ include "cloudprober.servicePort" . }}
-  Visit http://127.0.0.1:8080
+  Visit http://127.0.0.1:{{ include "cloudprober.servicePort" . }}
 {{- end }}
